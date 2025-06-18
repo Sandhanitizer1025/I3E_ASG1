@@ -18,6 +18,12 @@ public class PlayerBehaviour : MonoBehaviour
     bool canInteract = false;
     // Stores the current coin object the player has detected
     CoinBehaviour currentCoin = null;
+    // Flag to check if player is dead
+    DoorBehaviour currentDoor = null;
+    bool isDead = false;
+
+    /// <summary>The point where the player will respawn after death.</summary>
+    [SerializeField] private Transform respawnPoint;
 
     void Update()
     {
@@ -33,7 +39,7 @@ public class PlayerBehaviour : MonoBehaviour
     void OnInteract()
     {
         // Check if the player can interact with objects
-        if (canInteract)
+        if (canInteract && !isDead)
         {
             // Check if the player has detected a coin or a door
             if (currentCoin != null)
@@ -43,6 +49,13 @@ public class PlayerBehaviour : MonoBehaviour
                 // Pass the player object as an argument
                 currentCoin.Collect(this);
             }
+
+            else if (currentDoor != null)
+            {
+                Debug.Log("Interacting with door");
+                currentDoor.Interact();
+            }
+
         }
     }
 
@@ -56,7 +69,7 @@ public class PlayerBehaviour : MonoBehaviour
         currentScore += amt;
     }
 
-    
+
 
 
     // Trigger Callback for when the player enters a trigger collider
@@ -70,6 +83,16 @@ public class PlayerBehaviour : MonoBehaviour
             // Get the CoinBehaviour component from the detected object
             canInteract = true;
             currentCoin = other.GetComponent<CoinBehaviour>();
+            currentDoor = null;
+            if (UIManager.Instance != null)
+                UIManager.Instance.UpdatePromptUI(true);
+        }
+
+        else if (other.CompareTag("Door"))
+        {
+            canInteract = true;
+            currentDoor = other.GetComponent<DoorBehaviour>();
+            currentCoin = null; // Clear coin reference
             if (UIManager.Instance != null)
                 UIManager.Instance.UpdatePromptUI(true);
         }
@@ -78,20 +101,37 @@ public class PlayerBehaviour : MonoBehaviour
     // Trigger Callback for when the player exits a trigger collider
     void OnTriggerExit(Collider other)
     {
-        // Check if the player has a detected coin or door
-        if (currentCoin != null)
+        if (currentCoin != null && other.gameObject == currentCoin.gameObject)
         {
-            // If the object that exited the trigger is the same as the current coin
-            if (other.gameObject == currentCoin.gameObject)
-            {
-                // Set the canInteract flag to false
-                // Set the current coin to null
-                // This prevents the player from interacting with the coin
-                canInteract = false;
-                currentCoin = null;
-                if (UIManager.Instance != null)
-                    UIManager.Instance.UpdatePromptUI(false);
-            }
+            canInteract = false;
+            currentCoin = null;
+            if (UIManager.Instance != null)
+                UIManager.Instance.UpdatePromptUI(false);
         }
+        else if (currentDoor != null && other.gameObject == currentDoor.gameObject)
+        {
+            canInteract = false;
+            currentDoor = null;
+            if (UIManager.Instance != null)
+                UIManager.Instance.UpdatePromptUI(false);
+        }
+    }
+
+    // Method to handle player death
+    public void Die()
+{
+    Debug.Log("Player Died!");
+
+    if (respawnPoint != null)
+    {
+        transform.position = respawnPoint.position;
+        transform.rotation = respawnPoint.rotation;
+        Debug.Log("Player respawned.");
+    }
+    else
+    {
+        Debug.LogWarning("Respawn point not assigned!");
+    }
+
     }
 }
