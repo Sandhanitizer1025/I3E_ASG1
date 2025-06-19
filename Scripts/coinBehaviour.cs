@@ -1,30 +1,55 @@
 /* 
  * Author: Raphael Goh Zheng An
- * Date: 2025-06-16
- * Description: Allows the player to collect coins.
+ * Date: 2025-06-19
+ * Description: Allows the player to collect coins and updates UI.
  */
 
 using UnityEngine;
 
+/// <summary>
+/// Handles coin collection behavior.  
+/// When collected, updates the player's score and UI, plays a sound, and destroys the coin.
+/// </summary>
 public class CoinBehaviour : MonoBehaviour
 {
-    // Coin value that will be added to the player's score
-    [SerializeField]
-    int coinValue = 1;
+    /// <summary>
+    /// The value of this coin (amount added to player score).
+    /// </summary>
+    [SerializeField] int coinValue = 1;
 
+    /// <summary>
+    /// Sound played when the coin is collected.
+    /// </summary>
+    [SerializeField] AudioClip coinSound;
+
+    /// <summary>
+    /// Collects the coin: plays sound, adds score, updates UI, and destroys the coin object.
+    /// </summary>
+    /// <param name="player">The player collecting this coin.</param>
     public void Collect(PlayerBehaviour player)
     {
         // Logic for collecting the coin
         Debug.Log("Coin collected!");
-        
-        // Add the coin value to the player's score
-        // This is done by calling the ModifyScore method on the player object
-        // The coinValue is passed as an argument to the method
-        // This allows the player to gain points when they collect the coin
+
+        // Play coin collection sound
+        if (coinSound != null)
+        {
+            AudioSource.PlayClipAtPoint(coinSound, transform.position);
+        }
+
+        // Modify player's score
         player.ModifyScore(coinValue);
 
+        // Update UI
         if (UIManager.Instance != null)
+        {
             UIManager.Instance.OnCoinCollected();
-        Destroy(gameObject); // Destroy the coin object
+
+            // Hide prompt after collecting
+            UIManager.Instance.UpdatePromptUI(false);
+        }
+
+        // Destroy the coin object
+        Destroy(gameObject);
     }
 }

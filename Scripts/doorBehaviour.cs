@@ -1,3 +1,9 @@
+/* 
+ * Author: Raphael Goh Zheng An
+ * Date: 2025-06-19
+ * Description: Door behaviour
+ */
+
 using UnityEngine;
 
 public class DoorBehaviour : MonoBehaviour
